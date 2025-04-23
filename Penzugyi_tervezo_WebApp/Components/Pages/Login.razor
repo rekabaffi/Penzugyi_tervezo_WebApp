@@ -1,0 +1,105 @@
+﻿@page "/login"
+@rendermode InteractiveServer
+@using Penzugyi_tervezo_WebApp.Models
+@using Penzugyi_tervezo_WebApp.Services
+@inject UserService UserService
+@inject NavigationManager NavManager
+@inject ILogger<Login> Logger
+@inject UserSessionService Session
+
+<div class="login-container">
+    <h3>Login</h3>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">
+            @Message
+        </div>
+    }
+
+    <EditForm Model="@loginDto" OnValidSubmit="@HandleLogin" FormName="loginForm">
+        <ObjectGraphDataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <InputText id="username" @bind-Value="loginDto.username" class="form-control" />
+            <ValidationMessage For="@(() => loginDto.username)" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <InputText id="password" @bind-Value="loginDto.password" 
+                     type="password" class="form-control" />
+            <ValidationMessage For="@(() => loginDto.password)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+            }
+            Login
+        </button>
+        <button type="button" class="btn btn-secondary ml-2" @onclick="NavigateToRegister">
+            Register
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    private UserLoginDto loginDto = new();
+    private string Message = string.Empty;
+    private bool isError = false;
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        // Initialize with test values for debugging if needed
+        // loginDto.username = "admin";
+        // loginDto.password = "admin";
+    }
+
+    private async Task HandleLogin()
+    {
+        Console.WriteLine($"Attempting login with: {loginDto.username}"); // Debug output
+        
+        isLoading = true;
+        StateHasChanged(); // Force UI update
+
+        try
+        {
+            var result = await UserService.LoginAsync(loginDto);
+            
+            if (result)
+            {
+                Message = "Login successful! Redirecting...";
+                isError = false;
+                await Task.Delay(1500); // Let user see the message
+                Session.Login();
+                NavManager.NavigateTo("/welcome");
+            }
+            else
+            {
+                Message = "Invalid username or password";
+                isError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"Login failed: {ex.Message}";
+            isError = true;
+            Logger.LogError(ex, "Login error for user {Username}", loginDto.username);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToRegister()
+    {
+        NavManager.NavigateTo("/register");
+    }
+}

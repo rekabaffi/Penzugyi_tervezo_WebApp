@@ -1,0 +1,127 @@
+﻿@page "/transactions"
+@using System.Globalization
+
+<h2 class="mb-4">Tranzakciók kezelése</h2>
+
+<!-- Összegzés -->
+<div class="summary mb-4">
+    <h5>Összesítés</h5>
+    <p><strong>Bevételek:</strong> <span class="text-success">@TotalIncome Ft</span></p>
+    <p><strong>Kiadások:</strong> <span class="text-danger">@TotalExpense Ft</span></p>
+</div>
+
+<!-- Tranzakció hozzáadása -->
+<EditForm Model="@newTransaction" OnValidSubmit="@AddTransaction">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <InputText class="form-control" @bind-Value="newTransaction.Description" placeholder="Megjegyzés" />
+        </div>
+        <div class="col-md-2">
+            <InputText class="form-control" @bind-Value="newTransaction.Category" placeholder="Kategória" />
+        </div>
+        <div class="col-md-2">
+            <InputNumber class="form-control" @bind-Value="newTransaction.Amount" placeholder="Összeg" />
+        </div>
+        <div class="col-md-2">
+            <InputSelect class="form-select" @bind-Value="newTransaction.Type">
+                <option value="Income">Bevétel</option>
+                <option value="Expense">Kiadás</option>
+            </InputSelect>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Hozzáadás</button>
+        </div>
+    </div>
+</EditForm>
+
+<!-- Tranzakciók listája -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Megjegyzés</th>
+            <th>Kategória</th>
+            <th>Összeg</th>
+            <th>Típus</th>
+            <th>Műveletek</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in transactions)
+        {
+            <tr>
+                <td>@transaction.Description</td>
+                <td>@transaction.Category</td>
+                <td class="@(transaction.Type == "Income" ? "text-success" : "text-danger")">
+                    @transaction.Amount.ToString("C0", CultureInfo.CreateSpecificCulture("hu-HU"))
+                </td>
+                <td>@(transaction.Type == "Income" ? "Bevétel" : "Kiadás")</td>
+                <td>
+                    <button class="btn btn-sm btn-warning me-2" @onclick="() => EditTransaction(transaction)">Szerkeszt</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteTransaction(transaction)">Töröl</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    public class Transaction
+    {
+        public string Description { get; set; } = "";
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Type { get; set; } = "Income"; // "Income" vagy "Expense"
+    }
+
+    private List<Transaction> transactions = new()
+    {
+        new Transaction { Description = "Fizetés", Category = "Munka", Amount = 250000, Type = "Income" },
+        new Transaction { Description = "Bevásárlás", Category = "Élelmiszer", Amount = 15000, Type = "Expense" },
+        new Transaction { Description = "Albérlet", Category = "Lakhatás", Amount = 90000, Type = "Expense" }
+    };
+
+    private Transaction newTransaction = new();
+
+    private async Task AddTransaction()
+    {
+        transactions.Add(new Transaction
+            {
+                Description = newTransaction.Description,
+                Category = newTransaction.Category,
+                Amount = newTransaction.Amount,
+                Type = newTransaction.Type
+            });
+
+        newTransaction = new(); // clear the form
+    }
+
+    private void DeleteTransaction(Transaction transaction)
+    {
+        transactions.Remove(transaction);
+    }
+
+    private void EditTransaction(Transaction transaction)
+    {
+        newTransaction = new Transaction
+            {
+                Description = transaction.Description,
+                Category = transaction.Category,
+                Amount = transaction.Amount,
+                Type = transaction.Type
+            };
+
+        transactions.Remove(transaction);
+    }
+
+    private decimal TotalIncome => transactions
+        .Where(t => t.Type == "Income")
+        .Sum(t => t.Amount);
+
+    private decimal TotalExpense => transactions
+        .Where(t => t.Type == "Expense")
+        .Sum(t => t.Amount);
+}
+

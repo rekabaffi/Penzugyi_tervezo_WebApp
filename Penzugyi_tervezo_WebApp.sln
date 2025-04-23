@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Penzugyi_tervezo_WebApp", "Penzugyi_tervezo_WebApp\Penzugyi_tervezo_WebApp.csproj", "{C35E2782-757D-495C-AE61-DAAD5A8C4477}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C35E2782-757D-495C-AE61-DAAD5A8C4477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C35E2782-757D-495C-AE61-DAAD5A8C4477}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C35E2782-757D-495C-AE61-DAAD5A8C4477}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C35E2782-757D-495C-AE61-DAAD5A8C4477}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2C8C5C28-C913-4832-8C2E-0478C0281F5D}
+	EndGlobalSection
+EndGlobal

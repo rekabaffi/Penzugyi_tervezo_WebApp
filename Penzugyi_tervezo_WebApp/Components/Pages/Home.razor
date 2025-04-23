@@ -1,0 +1,23 @@
+﻿@page "/"
+@inject NavigationManager NavManager
+
+<div class="welcome-container text-center mt-5">
+    <h1 class="display-4">Üdvözöllek a Pénzügyi Tervezőben!</h1>
+    <p class="lead mt-3">
+        Egyszerűen nyomon követheted bevételeidet és kiadásaidat. Kezdd el most!
+    </p>
+
+    <div class="mt-4">
+        <!-- Using anchor tags for better semantics and reliability -->
+        <a href="/login" class="btn btn-primary me-3 btn-lg">Bejelentkezés</a>
+        <a href="/register" class="btn btn-outline-secondary btn-lg">Regisztráció</a>
+    </div>
+</div>
+
+<style>
+    .welcome-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>

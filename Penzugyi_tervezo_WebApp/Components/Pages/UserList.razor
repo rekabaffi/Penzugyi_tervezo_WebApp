@@ -1,0 +1,101 @@
+﻿@page "/users"
+@using Penzugyi_tervezo_WebApp.Models
+@using Penzugyi_tervezo_WebApp.Services
+@inject UserService UserService
+
+<h3>User List</h3>
+
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.user_id</td>
+                    <td>@user.username</td>
+                    <td>@user.email</td>
+                    <td>@user.created_at.ToLocalTime()</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => EditUser(user)">Modify</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.user_id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (editingUser != null)
+{
+    <h4>Modify User</h4>
+    <div class="mb-3">
+        <label>Username</label>
+        <input @bind="editingUser.username" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Email</label>
+        <input @bind="editingUser.email" class="form-control" />
+    </div>
+    <button class="btn btn-success" @onclick="SaveChanges">Save</button>
+    <button class="btn btn-secondary" @onclick="() => editingUser = null">Cancel</button>
+}
+
+@code {
+    private List<User>? users;
+    private User? editingUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserService.GetUsersAsync();
+    }
+
+    private void EditUser(User user)
+    {
+        editingUser = new User
+            {
+                user_id = user.user_id,
+                username = user.username,
+                email = user.email,
+                created_at = user.created_at
+            };
+    }
+
+    private async Task SaveChanges()
+    {
+        if (editingUser != null)
+        {
+            var success = await UserService.UpdateUserAsync(editingUser);
+            if (success)
+            {
+                users = await UserService.GetUsersAsync();
+                editingUser = null;
+            }
+        }
+    }
+
+    private async Task DeleteUser(int id)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete user {id}?");
+        if (confirmed)
+        {
+            await UserService.DeleteUserAsync(id);
+            users = await UserService.GetUsersAsync();
+        }
+    }
+
+    [Inject] IJSRuntime JS { get; set; } = default!;
+}
