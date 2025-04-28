@@ -1,7 +1,125 @@
 ﻿@page "/community"
+@inject ILogger<Community> Logger
 
-<h3>Community</h3>
+<h2>Közösségi Megtakarítási Célok</h2>
+
+<div class="mb-4">
+    <h4>Új cél hozzáadása</h4>
+    <input class="form-control mb-2" placeholder="Cél neve" @bind="newGoal.Name" />
+    <input class="form-control mb-2" placeholder="Cél összege (Ft)" type="number" @bind="newGoal.TargetAmount" />
+    <button class="btn btn-primary" @onclick="AddGoal">Cél hozzáadása</button>
+</div>
+
+<hr />
+
+@foreach (var goal in communityGoals)
+{
+    <div class="mb-5">
+        <h5>@goal.Name (@goal.CurrentAmount Ft / @goal.TargetAmount Ft)</h5>
+        <div class="progress mb-3">
+            <div class="progress-bar bg-success" role="progressbar" style="width: @goal.Progress%" aria-valuenow="@goal.CurrentAmount" aria-valuemin="0" aria-valuemax="@goal.TargetAmount">
+                @goal.Progress%
+            </div>
+        </div>
+
+        <h6>Tagok</h6>
+        <ul>
+            @foreach (var member in goal.Members)
+            {
+                <li>@member.Email – Összes hozzájárulás: @member.TotalContributed Ft</li>
+            }
+        </ul>
+
+        <div class="mb-2">
+            <input class="form-control mb-1" placeholder="Új tag e-mail címe" @bind="newMemberEmail" />
+            <button class="btn btn-secondary btn-sm" @onclick="() => AddMember(goal)">Tag hozzáadása</button>
+        </div>
+
+        <h6>Hozzájárulás</h6>
+        <input class="form-control mb-2" type="number" placeholder="Összeg (Ft)" @bind="contributionAmount" />
+        <select class="form-control mb-2" @bind="selectedMemberEmail">
+            <option disabled selected value="">Válassz tagot</option>
+            @foreach (var member in goal.Members)
+            {
+                <option value="@member.Email">@member.Email</option>
+            }
+        </select>
+        <button class="btn btn-success" @onclick="() => AddContribution(goal)">Hozzáadás</button>
+    </div>
+}
 
 @code {
+    private List<CommunityGoal> communityGoals = new();
+    private CommunityGoal newGoal = new();
+    private string newMemberEmail = "";
+    private int contributionAmount;
+    private string selectedMemberEmail = "";
 
+    private void AddGoal()
+    {
+        if (!string.IsNullOrWhiteSpace(newGoal.Name) && newGoal.TargetAmount > 0)
+        {
+            newGoal.Members = new List<CommunityMember>();
+            communityGoals.Add(newGoal);
+            newGoal = new CommunityGoal();
+        }
+    }
+
+    private void AddMember(CommunityGoal goal)
+    {
+        if (!string.IsNullOrWhiteSpace(newMemberEmail))
+        {
+            if (goal.Members.All(m => m.Email != newMemberEmail))
+            {
+                goal.Members.Add(new CommunityMember
+                    {
+                        Email = newMemberEmail,
+                        TotalContributed = 0,
+                        Contributions = new List<Contribution>()
+                    });
+                newMemberEmail = "";
+            }
+        }
+    }
+
+    private void AddContribution(CommunityGoal goal)
+    {
+        var member = goal.Members.FirstOrDefault(m => m.Email == selectedMemberEmail);
+        if (member != null && contributionAmount > 0)
+        {
+            member.TotalContributed += contributionAmount;
+            member.Contributions.Add(new Contribution
+                {
+                    Amount = contributionAmount,
+                    Date = DateTime.Now
+                });
+
+            goal.CurrentAmount += contributionAmount;
+            contributionAmount = 0;
+            selectedMemberEmail = "";
+        }
+    }
+
+    public class CommunityGoal
+    {
+        public string Name { get; set; }
+        public int TargetAmount { get; set; }
+        public int CurrentAmount { get; set; }
+        public List<CommunityMember> Members { get; set; } = new();
+
+        public string Progress => TargetAmount == 0 ? "0%" : $"{Math.Min(100, (int)((double)CurrentAmount / TargetAmount * 100))}%";
+    }
+
+    public class CommunityMember
+    {
+        public string Email { get; set; }
+        public int TotalContributed { get; set; }
+        public List<Contribution> Contributions { get; set; }
+    }
+
+    public class Contribution
+    {
+        public int Amount { get; set; }
+        public DateTime Date { get; set; }
+    }
 }
